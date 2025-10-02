@@ -5,7 +5,7 @@ Optimized for REDRAFT leagues (not dynasty)
 import requests
 import pandas as pd
 from typing import Optional
-import config
+import fantasy_config as config
 
 class FantasyCalcClient:
     """
