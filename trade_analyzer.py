@@ -151,6 +151,12 @@ class TradeAnalyzer:
         
         return overvalued, undervalued
     
+    def get_team_data(self, team_name: str) -> pd.DataFrame:
+        """
+        Get ALL players for a specific team (not just over/undervalued)
+        """
+        return self.merged_df[self.merged_df['team_name'] == team_name].copy()
+    
     def find_trade_targets(self, your_team: str, position_filter: str = None) -> pd.DataFrame:
         """
         Find undervalued players on OTHER teams
@@ -268,7 +274,59 @@ class TradeReporter:
                       f"Discount: {player['discount_premium']:6.1f}%")
         else:
             print("\n⚠ No significantly undervalued players on your roster")
-    
+
+    @staticmethod
+    def print_full_team_ratios(team_name: str, team_df: pd.DataFrame):
+        """Print ALL players on team with their discount/premium ratios"""
+        print("\n" + "="*80)
+        print(f"📊 COMPLETE ROSTER ANALYSIS: {team_name}")
+        print("="*80)
+        
+        if team_df.empty:
+            print(f"\n❌ No players found with complete data for {team_name}")
+            print("This might mean:")
+            print("- Player names don't match between ESPN and FantasyCalc")
+            print("- Players are too low-value to be tracked by FantasyCalc")
+            return
+        
+        # Sort by discount/premium (best values first)
+        team_sorted = team_df.sort_values('discount_premium', ascending=False)
+        
+        print(f"\nYour {len(team_sorted)} players with complete value data:")
+        print("-"*80)
+        print(f"{'Player':25} {'Pos':5} | {'Perceived':>9} | {'Forecast':>9} | {'Ratio':>7} | Status")
+        print("-"*80)
+        
+        for _, player in team_sorted.iterrows():
+            ratio = player['discount_premium']
+            
+            # Color coding for ratio
+            if ratio > 20:
+                status = "🟢 Great Buy"
+            elif ratio > 0:
+                status = "🟡 Fair Value"
+            elif ratio > -20:
+                status = "🟠 Slight Premium"
+            else:
+                status = "🔴 Overvalued"
+            
+            print(f"{player['player_name']:25} {player['position']:5} | "
+                  f"{player['perceived_normalized']:9.1f} | "
+                  f"{player['forecasted_normalized']:9.1f} | "
+                  f"{ratio:+6.1f}% | {status}")
+        
+        # Summary stats for your team
+        avg_ratio = team_sorted['discount_premium'].mean()
+        best_player = team_sorted.iloc[0]['player_name'] if not team_sorted.empty else "None"
+        worst_player = team_sorted.iloc[-1]['player_name'] if not team_sorted.empty else "None"
+        
+        print("-"*80)
+        print(f"Team Summary:")
+        print(f"  Average Ratio: {avg_ratio:+.1f}%")
+        print(f"  Best Value:    {best_player}")
+        print(f"  Worst Value:   {worst_player}")
+        print(f"  Players analyzed: {len(team_sorted)}")
+        
     @staticmethod
     def print_trade_targets(targets: pd.DataFrame, max_display: int = 15):
         """Print top trade targets"""

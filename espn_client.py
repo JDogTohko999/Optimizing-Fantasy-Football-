@@ -116,7 +116,14 @@ class ESPNClient:
         }
         
         for team in teams:
-            team_name = f"{team.get('location', '')} {team.get('nickname', '')}".strip()
+            # Try different name field patterns (same as get_all_teams method)
+            team_name = team.get('name', '')
+            if not team_name:
+                # Fallback to location + nickname if name is empty
+                location = team.get('location', '')
+                nickname = team.get('nickname', '')
+                team_name = f"{location} {nickname}".strip()
+            
             team_id = team.get('id')
             
             roster = team.get('roster', {})

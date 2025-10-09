@@ -197,6 +197,12 @@ def main():
     your_overvalued, your_undervalued = analyzer.analyze_team(your_team)
     
     reporter = TradeReporter()
+    
+    # Show complete roster analysis first
+    your_team_data = analyzer.get_team_data(your_team)
+    reporter.print_full_team_ratios(your_team, your_team_data)
+    
+    # Then show the focused over/undervalued analysis
     reporter.print_team_analysis(your_team, your_overvalued, your_undervalued)
     
     # Find trade targets
